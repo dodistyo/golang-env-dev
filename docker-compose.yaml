@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+# Production container. Builds in release mode and run. Project will be restarted on every abort.
+  #app-production:
+    #restart: unless-stopped
+    #build:
+      #context: .
+      #dockerfile: Dockerfile
+    #environment:
+      #GIN_MODE: "release"     # Example ENV variable
+      #SERVING_PORT: "*:8080"  # Example ENV variable
+    #volumes:
+      #- .:/src/myapp
+    #working_dir: /src/myapp
+    #ports:
+      #- "8080:8080"
+    
+# Development container. Runs in debug mode and live-reloading on every source file update.
+  app-development:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfile.development
+    environment: 
+      DEBUG: "true"          # Example ENV variable
+      SERVING_PORT: ":8080"  # Example ENV variable
+    volumes:
+      - .:/src/myapp
+    working_dir: /src/myapp
+    ports:
+      - "8080:8080"
+    command: bash -c "make watch"

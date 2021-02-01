@@ -1,0 +1,37 @@
+############################
+# STEP 1 build executable binary
+############################
+FROM golang:1.15-alpine as builder
+# Setup env
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 
+# Install git + SSL ca certificates.
+# Git is required for fetching the dependencies.
+# Ca-certificates is required to call HTTPS endpoints.
+RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
+RUN apk add --no-cache autoconf automake libtool gettext gettext-dev make g++ texinfo curl
+# Create appuser
+ENV USER=appuser
+ENV UID=10001
+# See https://stackoverflow.com/a/55757473/12429735RUN 
+RUN adduser \    
+    --disabled-password \    
+    --gecos "" \    
+    --home "/nonexistent" \    
+    --shell "/sbin/nologin" \    
+    --no-create-home \    
+    --uid "${UID}" \    
+    "${USER}"
+WORKDIR /src/myapp/
+COPY . .
+# Fetch dependencies.
+RUN go mod download
+RUN go mod verify
+# Package hot reload
+RUN go get github.com/cespare/reflex
+# Build the binary
+# RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o app
+# Command to run when starting the container
+# CMD ["make", "watch"]
